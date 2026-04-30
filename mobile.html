@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>VIN-TAGe™ Decoder — THROTTLED IN BOND™</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=Cormorant+Garamond:ital,wght@1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  .lowercase-e { text-transform: lowercase !important; font-family: 'IBM Plex Mono', monospace; font-size: .78em; vertical-align: baseline; position: relative; top: .05em; }
+
+  :root {
+    --cream:    #F2EDE3;
+    --cream-2:  #E8E0D0;
+    --cream-3:  #D6CCBA;
+    --charcoal: #1A1917;
+    --charcoal-2: #242220;
+    --charcoal-3: #2E2C28;
+    --charcoal-4: #3E3B35;
+    --ink:      #2A2722;
+    --gold:     #C8952A;
+    --gold-lt:  #E8B84B;
+    --rust:     #8B3A2A;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono:    'IBM Plex Mono', monospace;
+    --font-serif:   'Cormorant Garamond', serif;
+  }
+
+  html { font-size: 16px; }
+
+  body {
+    background: var(--charcoal);
+    color: var(--cream);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* ── WRAPPER ── */
+  .mob-wrap {
+    width: 100%;
+    padding: 0 14px;
+    box-sizing: border-box;
+  }
+
+  /* ── SECTION LABELS ── */
+  .sec-label {
+    font-size: 9px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: #9A6E18;
+    margin-bottom: 8px;
+  }
+
+  /* ── DIVIDER ── */
+  .sec-divider {
+    height: 1px;
+    background: var(--gold);
+    opacity: .2;
+    margin: 2px 0;
+  }
+
+  /* ── PANEL ── */
+  .mob-panel {
+    background: var(--charcoal-2);
+    padding: 12px 14px;
+    width: 100%;
+  }
+
+  /* ══════════════════════════════════
+     DECODER SECTION
+  ══════════════════════════════════ */
+  .decoder-section {
+    padding: 20px 0 0;
+    width: 100%;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .vin-input {
+    flex: 1;
+    min-width: 0;
+    width: 0;
+    background: var(--charcoal-2);
+    border: 1px solid var(--charcoal-4);
+    border-right: none;
+    color: var(--cream);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    padding: 10px 12px;
+    outline: none;
+    border-radius: 0;
+    -webkit-appearance: none;
+    transition: border-color .2s;
+  }
+
+  .vin-input::placeholder {
+    color: var(--charcoal-4);
+    font-weight: 400;
+    letter-spacing: .10em;
+  }
+
+  .vin-input:focus {
+    border-color: var(--gold);
+    background: #1e1c1a;
+  }
+
+  .decode-btn {
+    flex-shrink: 0;
+    background: var(--gold);
+    color: var(--charcoal);
+    border: none;
+    font-family: var(--font-display);
+    font-size: 13px;
+    letter-spacing: .12em;
+    padding: 0 16px;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+
+  .decode-btn:active { background: var(--gold-lt); }
+
+  .hint {
+    font-size: 9px;
+    letter-spacing: .10em;
+    color: var(--charcoal-4);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .hint strong { color: var(--cream-3); }
+
+  .example-label {
+    font-size: 9px;
+    color: var(--charcoal-4);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .example-pills {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+  }
+
+  .example-pill {
+    background: var(--charcoal-3);
+    color: var(--cream-3);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: .12em;
+    padding: 5px 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    border: none;
+    transition: color .15s, background .15s;
+  }
+
+  .example-pill:active {
+    color: var(--gold);
+    background: var(--charcoal-4);
+  }
+
+  /* ── RESULT PANEL ── */
+  #result-panel {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity .35s ease, transform .35s ease;
+    pointer-events: none;
+    margin-top: 8px;
+  }
+
+  #result-panel.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  /* Result card */
+  .result-card { background: var(--cream); width: 100%; position: relative; }
+
+  .result-header {
+    background: var(--charcoal);
+    border-bottom: 2px solid var(--gold);
+    padding: 10px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .result-tag-label {
+    font-size: 8px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 2px;
+  }
+
+  .result-code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--gold-lt);
+    letter-spacing: .14em;
+  }
+
+  .result-badge {
+    background: var(--gold);
+    color: var(--charcoal);
+    font-family: var(--font-display);
+    font-size: 12px;
+    letter-spacing: .1em;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .result-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .result-title-row {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--cream-3);
+    margin-bottom: 2px;
+  }
+
+  .result-whiskey-name {
+    font-family: var(--font-display);
+    font-size: 20px;
+    letter-spacing: .06em;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+
+  .result-series {
+    font-family: var(--font-serif);
+    font-size: 12px;
+    font-style: italic;
+    color: var(--gold);
+    margin-top: 2px;
+  }
+
+  /* Stats — 2 column grid on mobile */
+  .stats-grid-mob {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-bottom: 2px;
+  }
+
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    background: var(--cream-2);
+    border-left: 2px solid var(--gold);
+  }
+
+  .stat-block.full { grid-column: 1 / -1; }
+
+  .stat-label {
+    font-size: 8px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: .04em;
+    line-height: 1.2;
+  }
+
+  .stat-sub {
+    font-size: 9px;
+    color: #888;
+    letter-spacing: .06em;
+    font-family: var(--font-serif);
+    font-style: italic;
+  }
+
+  /* Mash bill */
+  .mash-bar-wrapper {
+    background: var(--cream-2);
+    padding: 8px 10px;
+    margin-bottom: 2px;
+  }
+
+  .mash-bar-label {
+    font-size: 8px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 5px;
+  }
+
+  .mash-bar-row {
+    display: flex;
+    height: 20px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .mash-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 500;
+    transition: width .6s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .mash-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .mash-legend-item {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--ink);
+    letter-spacing: .08em;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mash-dot {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+  }
+
+  /* Narrative */
+  .result-narrative {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: #888;
+    font-style: italic;
+    padding: 8px 10px;
+    background: var(--cream-2);
+    line-height: 1.6;
+    margin-bottom: 2px;
+    grid-column: 1 / -1;
+  }
+
+  /* Garage CTA */
+  .garage-cta {
+    background: var(--charcoal);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .garage-cta-text {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--cream-3);
+    letter-spacing: .08em;
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .garage-cta-text strong {
+    display: block;
+    color: var(--cream);
+    font-size: 10px;
+    margin-bottom: 2px;
+  }
+
+  .btn-garage {
+    background: transparent;
+    border: 1px solid var(--charcoal-4);
+    color: var(--gold);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: .14em;
+    padding: 6px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: uppercase;
+    transition: border-color .15s;
+    flex-shrink: 0;
+  }
+
+  .btn-garage:active { border-color: var(--gold); }
+
+  /* Error state */
+  .error-state {
+    background: var(--cream);
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .error-icon {
+    font-size: 20px;
+    color: var(--rust);
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .error-text {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink);
+    letter-spacing: .06em;
+    line-height: 1.6;
+  }
+
+  .error-text strong {
+    display: block;
+    font-size: 11px;
+    color: var(--rust);
+    margin-bottom: 4px;
+    letter-spacing: .1em;
+  }
+
+  /* Example watermark */
+  .example-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: .2em;
+    color: rgba(200, 149, 42, 0.18);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+    text-transform: uppercase;
+    border: 2px solid rgba(200, 149, 42, 0.18);
+    padding: 6px 12px;
+  }
+
+  /* ══════════════════════════════════
+     REFERENCE SECTIONS
+  ══════════════════════════════════ */
+  .ref-section {
+    padding: 20px 0 0;
+    width: 100%;
+  }
+
+  /* Segment tiles */
+  .code-full {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: .12em;
+    font-size: 12px;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .segs-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1px;
+    width: 100%;
+  }
+
+  .seg-tile {
+    background: var(--charcoal-3);
+    padding: 8px 3px;
+    text-align: center;
+    cursor: default;
+    transition: background .15s;
+    overflow: hidden;
+  }
+
+  .seg-tile:active { background: var(--charcoal-4); }
+
+  .seg-val {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: .08em;
+    display: block;
+    margin-bottom: 3px;
+    transition: color .15s;
+  }
+
+  .seg-fld {
+    font-family: var(--font-mono);
+    font-size: 6px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--cream-3);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Series / gen rows */
+  .series-row {
+    background: var(--charcoal-3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    transition: background .15s;
+  }
+
+  .series-row + .series-row { margin-top: 1px; }
+
+  .s-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: .10em;
+    min-width: 22px;
+  }
+
+  .s-name {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--cream-3);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  /* Gen rows grid — 1 col */
+  .gen-grid { display: flex; flex-direction: column; gap: 1px; margin-bottom: 8px; }
+
+  .body-text {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: #C4BAA6;
+    font-style: italic;
+    line-height: 1.6;
+  }
+
+  /* Data plate */
+  .data-plate-row {
+    display: flex;
+    gap: 1px;
+    width: 100%;
+  }
+
+  .dp-tile {
+    flex: 1 1 0;
+    min-width: 0;
+    background: var(--charcoal-3);
+    padding: 7px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .dp-tile-wide {
+    flex: 2 1 0;
+    min-width: 0;
+    background: var(--charcoal-3);
+    padding: 7px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .dp-code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--gold);
+    letter-spacing: .08em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .dp-lbl {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+    color: var(--cream-3);
+    white-space: nowrap;
+  }
+
+  .dp-grain {
+    font-family: var(--font-mono);
+    font-size: 7px;
+    color: #6A6058;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── SCANNING ANIMATION ── */
+  @keyframes scan {
+    0%   { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+
+  .scanning::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 3px;
+    background: var(--gold);
+    animation: scan .7s ease-in forwards;
+    pointer-events: none;
+  }
+
+  /* ── MODAL ── */
+  #garage-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="mob-wrap">
+
+  <!-- ══ DECODER ══ -->
+  <div class="decoder-section">
+    <div class="mob-panel">
+      <div class="sec-label">VIN-TAG<span class="lowercase-e">e</span>™ Lookup</div>
+      <div class="input-row">
+        <input
+          type="text"
+          class="vin-input"
+          id="vin-input"
+          placeholder="TIB 26 FS G1 00001"
+          maxlength="20"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          inputmode="text"
+        />
+        <button class="decode-btn" onclick="decode()">DECODE</button>
+      </div>
+      <div class="hint">Format: <strong>TIB YY SS G# #####</strong> · Found on your bottle label</div>
+      <div class="example-label">Try an example</div>
+      <div class="example-pills">
+        <div class="example-pill" onclick="fillAndDecode('TIB 26 FS G1 00001')">TIB 26 FS G1 00001</div>
+        <div class="example-pill" onclick="fillAndDecode('TIB 26 FS G1 00002')">TIB 26 FS G1 00002</div>
+        <div class="example-pill" onclick="fillAndDecode('TIB 26 FS G1 00003')">TIB 26 FS G1 00003</div>
+      </div>
+    </div>
+
+    <div id="result-panel" style="position:relative;"></div>
+  </div>
+
+  <!-- ══ REFERENCE ══ -->
+  <div class="ref-section">
+
+    <!-- Example Code -->
+    <div class="mob-panel">
+      <div class="sec-label">Example VIN-TAG<span class="lowercase-e">e</span>™ Code</div>
+      <div class="code-full">TIB &nbsp;·&nbsp; 26 &nbsp;·&nbsp; FS &nbsp;·&nbsp; G1 &nbsp;·&nbsp; 00001</div>
+      <div class="segs-grid" id="rtc-segs">
+        <div class="seg-tile" onclick="rtcActivate(0)"><span class="seg-val">TIB</span><span class="seg-fld">Brand</span></div>
+        <div class="seg-tile" onclick="rtcActivate(1)"><span class="seg-val">26</span><span class="seg-fld">Bottling Yr</span></div>
+        <div class="seg-tile" onclick="rtcActivate(2)"><span class="seg-val">FS</span><span class="seg-fld">Series</span></div>
+        <div class="seg-tile" onclick="rtcActivate(3)"><span class="seg-val">G1</span><span class="seg-fld">Generation</span></div>
+        <div class="seg-tile" onclick="rtcActivate(4)"><span class="seg-val">00001</span><span class="seg-fld">Barrel No.</span></div>
+      </div>
+    </div>
+
+    <div class="sec-divider"></div>
+
+    <!-- Series Codes -->
+    <div class="mob-panel">
+      <div class="sec-label">Series Codes</div>
+      <div class="series-row"><span class="s-code">FS</span><span class="s-name">Founders Select</span></div>
+      <div class="series-row"><span class="s-code">CS</span><span class="s-name">Collection Series</span></div>
+      <div class="series-row"><span class="s-code">BF</span><span class="s-name">Barn Find</span></div>
+    </div>
+
+    <div class="sec-divider"></div>
+
+    <!-- Generation Code -->
+    <div class="mob-panel">
+      <div class="sec-label">Generation Code</div>
+      <div class="gen-grid">
+        <div class="series-row"><span class="s-code">G1</span><span class="s-name">First Generation</span></div>
+        <div class="series-row"><span class="s-code">G2</span><span class="s-name">Second Generation</span></div>
+        <div class="series-row"><span class="s-code">G3</span><span class="s-name">Third Generation</span></div>
+      </div>
+      <div class="body-text">Each series release marks a new Generation. The Generation Code tracks the release history of each series over time.</div>
+    </div>
+
+    <div class="sec-divider"></div>
+
+    <!-- Barrel Number -->
+    <div class="mob-panel">
+      <div class="sec-label">Barrel Number</div>
+      <div class="body-text">Every barrel is assigned a sequential number starting at 00001, counting up across every series and generation forever. The number never resets.</div>
+    </div>
+
+    <div class="sec-divider"></div>
+
+    <!-- More Data Plate Information -->
+    <div class="mob-panel" style="padding-bottom:20px;">
+      <div class="sec-label">More Data Plate Information</div>
+      <div class="data-plate-row">
+        <div class="dp-tile"><span class="dp-code">[Pend]</span><span class="dp-lbl">Proof</span></div>
+        <div class="dp-tile"><span class="dp-code">KY</span><span class="dp-lbl">Origin</span></div>
+        <div class="dp-tile"><span class="dp-code">6</span><span class="dp-lbl">Age</span></div>
+        <div class="dp-tile"><span class="dp-code">F26</span><span class="dp-lbl">Bot. Date</span></div>
+        <div class="dp-tile-wide">
+          <span class="dp-code" style="font-size:9px;">C74 R18 W0 MB8</span>
+          <span class="dp-lbl">Mash Bill</span>
+          <span class="dp-grain">C=Corn R=Rye W=Wheat MB=Malted Barley</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ── MY GARAGE MODAL ── -->
+<div id="garage-modal" style="display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center;">
+  <div onclick="closeGarageModal()" style="position:absolute;inset:0;background:rgba(26,25,23,.88);"></div>
+  <div style="position:relative;background:#242220;max-width:480px;width:90%;padding:32px 20px;z-index:1001;border-top:2px solid #C8952A;">
+    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:.28em;text-transform:uppercase;color:#C8952A;margin-bottom:12px;">My Garage</div>
+    <div style="font-family:var(--font-display);font-size:30px;color:#F2EDE3;letter-spacing:.04em;line-height:1;margin-bottom:12px;">Coming Soon</div>
+    <p style="font-family:var(--font-serif);font-size:14px;color:#C4BAA6;font-style:italic;line-height:1.7;margin-bottom:20px;">The Garage feature will be made available to site members following our inaugural release. Join The Barrel Inventory for alerts on this and all future releases.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <a href="https://david29326.wixsite.com/tib-test" target="_parent" style="font-family:var(--font-display);font-size:13px;letter-spacing:.12em;padding:10px 20px;background:#C8952A;color:#1A1917;text-decoration:none;display:inline-block;">Join The Barrel Inventory</a>
+      <button onclick="closeGarageModal()" style="font-family:var(--font-display);font-size:13px;letter-spacing:.12em;padding:10px 16px;background:transparent;color:#F2EDE3;border:1px solid #3E3B35;cursor:pointer;">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── LOOKUP TABLES ──
+const BRANDS = {
+  'TIB': 'THROTTLED IN BOND™',
+};
+
+const SERIES = {
+  'FS': { name: "Founders Select",  desc: 'The flagship release — the barrel that started it all.' },
+  'CS': { name: 'Collection Series', desc: 'Curated selections for the dedicated collector.' },
+  'BF': { name: 'Barn Find',        desc: 'Discovered barrels — rare, aged, and worth the hunt.' },
+  'RS': { name: 'Reserve Series',   desc: 'Exceptional barrels held back for their extraordinary character.' },
+  'SS': { name: 'Survivor Series',  desc: 'Against-all-odds barrels — stories of patience and perseverance.' },
+  'LS': { name: 'Limited Series',   desc: 'One-time releases. Once they\'re gone, they\'re gone.' },
+};
+
+const GENERATION = {
+  'G1': { name: 'First Generation',   desc: 'The inaugural release of this series — where the story begins.' },
+  'G2': { name: 'Second Generation',  desc: 'The second chapter of this series, building on what came before.' },
+  'G3': { name: 'Third Generation',   desc: 'A continued pursuit of the same standard — refined with experience.' },
+  'G4': { name: 'Fourth Generation',  desc: 'Four releases deep into a series that keeps raising the bar.' },
+  'G5': { name: 'Fifth Generation',   desc: 'Five generations in — a mark of consistency and commitment to craft.' },
+};
+
+const GRAIN_NAMES = {
+  C: 'Corn', R: 'Rye', W: 'Wheat', MB: 'Malted Barley',
+};
+
+const GRAIN_COLORS = {
+  C:  { active: 'background:var(--gold);color:var(--charcoal)', dot: 'var(--gold)' },
+  R:  { active: 'background:var(--rust);color:#fff',            dot: 'var(--rust)' },
+  W:  { active: 'background:#8B7355;color:#fff',                dot: '#8B7355' },
+  MB: { active: 'background:#3E3B35;color:var(--cream-2)',      dot: '#555' },
+};
+
+// ── BARREL DATABASE ──
+const barrels = {
+  'TIB 26 FS G1 00001': {
+    code: 'TIB 26 FS G1 00001',
+    whiskey: 'Kentucky Straight Bourbon Whiskey',
+    proof: '[Pending]', abv: '[Pending]',
+    origin: 'Kentucky', distillery: 'Bardstown, KY',
+    age: '6 Years', bottleDate: 'June 2026', bottleCode: 'F26',
+    mashBill: [
+      { key: 'C',  pct: 74 },
+      { key: 'R',  pct: 18 },
+      { key: 'W',  pct: 0  },
+      { key: 'MB', pct: 8  },
+    ],
+    narrative: '[PLACEHOLDER] The barrel that started it all. A Bardstown beauty — deep amber, rich with caramel corn and a backbone of rye spice. Six years in new charred oak at barrel strength means nothing is hidden.',
+  },
+  'TIB 26 FS G1 00002': {
+    code: 'TIB 26 FS G1 00002',
+    whiskey: 'Kentucky Straight Bourbon Whiskey',
+    proof: '[Pending]', abv: '[Pending]',
+    origin: 'Kentucky', distillery: 'Bardstown, KY',
+    age: '6 Years', bottleDate: 'June 2026', bottleCode: 'F26',
+    mashBill: [
+      { key: 'C',  pct: 74 },
+      { key: 'R',  pct: 18 },
+      { key: 'W',  pct: 0  },
+      { key: 'MB', pct: 8  },
+    ],
+    narrative: '[PLACEHOLDER] Barrel 00002 runs a touch cooler. Stone fruit and vanilla take the lead, with the rye showing late.',
+  },
+  'TIB 26 FS G1 00003': {
+    code: 'TIB 26 FS G1 00003',
+    whiskey: 'Kentucky Straight Bourbon Whiskey',
+    proof: '[Pending]', abv: '[Pending]',
+    origin: 'Kentucky', distillery: 'Bardstown, KY',
+    age: '6 Years', bottleDate: 'June 2026', bottleCode: 'F26',
+    mashBill: [
+      { key: 'C',  pct: 74 },
+      { key: 'R',  pct: 18 },
+      { key: 'W',  pct: 0  },
+      { key: 'MB', pct: 8  },
+    ],
+    narrative: '[PLACEHOLDER] The boldest of the three. Unapologetic heat up front giving way to dark chocolate, dried cherry, and toasted oak.',
+  },
+};
+
+function normalizeCode(raw) {
+  return raw.trim().toUpperCase().replace(/\s+/g, ' ');
+}
+
+function parseCode(code) {
+  const parts = code.split(' ');
+  if (parts.length !== 5) return null;
+  const [brand, year, series, generation, barrel] = parts;
+  return {
+    brand, year, series, generation, barrel,
+    brandInfo:      BRANDS[brand]          || null,
+    seriesInfo:     SERIES[series]         || null,
+    generationInfo: GENERATION[generation] || null,
+  };
+}
+
+function fillAndDecode(code) {
+  window._isExample = true;
+  document.getElementById('vin-input').value = code;
+  decode();
+}
+
+function decode() {
+  const raw   = document.getElementById('vin-input').value;
+  const code  = normalizeCode(raw);
+  const panel = document.getElementById('result-panel');
+  const input = document.getElementById('vin-input');
+
+  input.classList.add('scanning');
+  setTimeout(() => input.classList.remove('scanning'), 700);
+  panel.classList.remove('visible');
+
+  setTimeout(() => {
+    const barrel = barrels[code];
+    const parsed = parseCode(code);
+
+    if (barrel && parsed) {
+      panel.innerHTML = buildResult(barrel, parsed);
+    } else if (code.length < 5) {
+      panel.innerHTML = '';
+    } else {
+      panel.innerHTML = buildError(code, parsed);
+    }
+
+    if (barrel) {
+      setTimeout(() => {
+        document.querySelectorAll('.mash-seg[data-target]').forEach(s => {
+          s.style.width = s.dataset.target + '%';
+        });
+      }, 80);
+    }
+
+    panel.classList.add('visible');
+
+    // Add example watermark
+    const existingWm = panel.querySelector('.example-watermark');
+    if (existingWm) existingWm.remove();
+    if (window._isExample) {
+      const wm = document.createElement('div');
+      wm.className = 'example-watermark';
+      wm.textContent = 'Example Report';
+      panel.appendChild(wm);
+    }
+
+    notifyHeight();
+  }, 350);
+}
+
+function buildMashBar(mashBill) {
+  const segs = mashBill.map(g => {
+    const col = GRAIN_COLORS[g.key] || { active: 'background:#888;color:#fff', dot: '#888' };
+    if (g.pct === 0) {
+      return `<div class="mash-seg" data-target="0" style="width:0%;background:var(--cream-3)" title="${GRAIN_NAMES[g.key]||g.key}: 0%"></div>`;
+    }
+    return `<div class="mash-seg" data-target="${g.pct}" style="width:0%;${col.active}">${g.pct > 8 ? g.pct + '%' : ''}</div>`;
+  }).join('');
+
+  const legend = mashBill.map(g => {
+    const col = GRAIN_COLORS[g.key] || { dot: '#888' };
+    const dot = g.pct === 0 ? 'background:var(--cream-3)' : `background:${col.dot}`;
+    const style = g.pct === 0 ? 'color:#aaa' : '';
+    return `<div class="mash-legend-item" style="${style}"><div class="mash-dot" style="${dot}"></div>${g.pct}% ${GRAIN_NAMES[g.key]||g.key}</div>`;
+  }).join('');
+
+  return `<div class="mash-bar-wrapper">
+    <div class="mash-bar-label">Mash Bill</div>
+    <div class="mash-bar-row">${segs}</div>
+    <div class="mash-legend">${legend}</div>
+  </div>`;
+}
+
+function buildResult(b, parsed) {
+  const si = parsed.seriesInfo     || { name: parsed.series,     desc: '' };
+  const gi = parsed.generationInfo || { name: parsed.generation, desc: '' };
+  const bn = parsed.brandInfo      || parsed.brand;
+
+  return `
+  <div class="result-card">
+    <div class="result-header">
+      <div>
+        <div class="result-tag-label">VIN-TAG<span class="lowercase-e">e</span>™ Verified · ${bn}</div>
+        <div class="result-code">${b.code}</div>
+      </div>
+      <div class="result-badge">BARREL ${parsed.barrel}</div>
+    </div>
+    <div class="result-body">
+      <div class="result-title-row">
+        <div class="result-whiskey-name">${b.whiskey}</div>
+        <div class="result-series">${si.name} · Single Barrel · Barrel Strength</div>
+      </div>
+      <div class="stats-grid-mob">
+        <div class="stat-block">
+          <div class="stat-label">Proof</div>
+          <div class="stat-value">${b.proof}</div>
+          <div class="stat-sub">${b.abv === '[Pending]' ? '[Pending]' : b.abv + ' ABV'}</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Age</div>
+          <div class="stat-value">${b.age}</div>
+          <div class="stat-sub">Bottled ${b.bottleDate}</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Origin</div>
+          <div class="stat-value">${b.origin}</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Series</div>
+          <div class="stat-value">${si.name}</div>
+        </div>
+        <div class="stat-block full">
+          <div class="stat-label">Generation</div>
+          <div class="stat-value">${gi.name}</div>
+          <div class="stat-sub">${gi.desc}</div>
+        </div>
+      </div>
+      ${buildMashBar(b.mashBill)}
+      <div class="result-narrative">"${b.narrative}"</div>
+      <div class="garage-cta">
+        <div class="garage-cta-text">
+          <strong>Save to My Garage</strong>
+          Log in to add this VIN-TAG<span class="lowercase-e">e</span>™ to your collection
+        </div>
+        <button class="btn-garage" onclick="showGarageModal()">Open My Garage →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildError(code, parsed) {
+  let hint = '';
+  if (parsed) {
+    const parts = [];
+    if (parsed.brandInfo)      parts.push(`Brand: <strong>${parsed.brandInfo}</strong>`);
+    if (parsed.seriesInfo)     parts.push(`Series: <strong>${parsed.seriesInfo.name}</strong>`);
+    if (parsed.generationInfo) parts.push(`Gen: <strong>${parsed.generationInfo.name}</strong>`);
+    if (parts.length) hint = `<div style="margin-top:6px;font-size:9px;color:var(--cream-3);line-height:1.8">${parts.join(' · ')}</div>`;
+  }
+  return `<div class="error-state">
+    <div class="error-icon">⊘</div>
+    <div class="error-text">
+      <strong>Barrel Not Found</strong>
+      "${code}" isn't in our system yet. Check your label and try again.
+      ${hint}
+    </div>
+  </div>`;
+}
+
+// Enter key
+document.getElementById('vin-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') decode();
+});
+
+// Auto-format
+document.getElementById('vin-input').addEventListener('input', function(e) {
+  window._isExample = false;
+  let v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let f = '';
+  for (let i = 0; i < v.length && i < 16; i++) {
+    if (i === 3 || i === 5 || i === 7 || i === 9) f += ' ';
+    f += v[i];
+  }
+  e.target.value = f;
+});
+
+// Segment interaction
+let rtcActive = -1;
+const rtcSegs = document.querySelectorAll('.seg-tile');
+function rtcActivate(i) {
+  rtcSegs.forEach((s, idx) => {
+    s.style.background = idx === i && rtcActive !== i ? '#3E3B35' : '#2E2C28';
+    s.querySelector('.seg-val').style.color = idx === i && rtcActive !== i ? '#E8B84B' : '#C8952A';
+  });
+  rtcActive = rtcActive === i ? -1 : i;
+}
+
+// Garage modal
+function showGarageModal() {
+  const m = document.getElementById('garage-modal');
+  m.style.display = 'flex';
+}
+function closeGarageModal() {
+  document.getElementById('garage-modal').style.display = 'none';
+}
+
+// Height reporting for iFrame
+function notifyHeight() {
+  setTimeout(() => {
+    const h = document.body.scrollHeight;
+    window.parent.postMessage({ type: 'tib-decoder-height', height: h }, '*');
+  }, 100);
+}
+
+window.addEventListener('load', notifyHeight);
+window.addEventListener('resize', notifyHeight);
+</script>
+</body>
+</html>
